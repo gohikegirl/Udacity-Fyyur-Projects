@@ -1,0 +1,141 @@
+<html>
+  <head>
+    <title>Todo App</title>
+    <style>
+      #error {
+        display: none;
+      }
+      ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        width: 200px;
+      }
+      li {
+        clear: both;
+      }
+      li button {
+        -webkit-appearance: none;
+        border: none;
+        outline: none;
+        color: red;
+        float: right;
+        cursor: pointer;
+        font-size: 20px;
+      }
+      .lists-wrapper, .todos-wrapper {
+        display: inline-block;
+        vertical-align: top;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="error" class="hidden">Something went wrong!</div>
+    <form id="list-form">
+      <input type="text" id="lname" name="lname"/>
+      <input type="submit" value="Create a New List"/>
+    </form>
+    <form id="form">
+      <input type="text" id="description" name="description"/>
+      <input type="submit" value="Create a To Do Item"/>
+    </form>
+    <ul id="todos">
+      {% for d in data %}
+      <li>
+        <input class="check-completed" data-id="{{d.id}}" type="checkbox" {% if d.completed %} checked {% endif %}/>
+        {{ d.description }}
+        <button class = "delete-button" data-id ="{{ d.id }}">&cross;</button>
+      </li>
+      {% endfor %}
+    </ul>
+    <script>
+      const deleteBtns = document.querySelectorAll('.delete-button');
+      for (let i=0; i< deleteBtns.length; i++){
+        const btn = deleteBtns[i];
+        btn.onclick = function(e){
+          const todoId = e.target.dataset['id'];
+          fetch ('/todos/' + todoId, {
+            method:'DELETE',
+          })
+          .then(function(){
+            document.getElementById('error').className = 'hidden';
+            window.location.href='/';
+          })
+        }
+      }
+      const checkboxes = document.querySelectorAll('.check-completed');
+      for (let i = 0; i < checkboxes.length; i++){
+        const checkbox = checkboxes[i];
+        checkbox.onchange = function(e) {
+          console.log('event', e);
+          const newCompleted = e.target.checked;
+          const todoId = e.target.dataset['id'];
+          fetch ('/todos/' + todoId + '/set-completed', {
+            method: 'POST',
+            body: JSON.stringify({
+              'completed':newCompleted
+            }),
+            headers:{
+              'Content-Type': 'application/json'
+            }
+          })
+          .then(function(){
+            document.getElementById('error').className = 'hidden';
+          })
+          .catch(function() {
+            document.getElementById('error').className = '';
+          })
+        }
+      }
+      const descInput = document.getElementById('description');
+      document.getElementById('form').onsubmit = function(e) {
+        e.preventDefault();
+        const desc = descInput.value;
+        descInput.value = '';
+        fetch('/todos/create', {
+          method: 'POST',
+          body: JSON.stringify({
+            'description': desc,
+          }),
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        })
+        .then(response => response.json())
+        .then(jsonResponse => {
+          console.log('response', jsonResponse);
+          li = document.createElement('li');
+          li.innerText = desc;
+          document.getElementById('todos').appendChild(li);
+          document.getElementById('error').className = 'hidden';
+        })
+        .catch(function() {
+          document.getElementById('error').className = '';
+        })
+      }
+      const lnameInput = document.getElementById('lname');
+      document.getElementById('list-form').onsubmit = function(e) {
+        e.preventDefault();
+        const lname = lnameInput.value;
+        lnameInput.value = '';
+        fetch('/todolists/create', {
+          method: 'POST',
+          body: JSON.stringify({
+            'lname': lname,
+          }),
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        })
+        .then(response => response.json())
+        .then(jsonResponse => {
+          console.log('response', jsonResponse);
+          document.getElementById('error').className = 'hidden';
+        })
+        .catch(function() {
+          document.getElementById('error').className = '';
+        })
+      }
+    </script>
+  </body>
+</html>

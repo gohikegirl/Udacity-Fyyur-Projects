@@ -1,0 +1,36 @@
+<html>
+  <head>
+    <title>Todo App</title>
+    <style>
+      .hidden {
+        display: none;
+      }
+      ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="error" class="hidden">Something went wrong!</div>
+    <form id="form" method="post" action="/todos/create">
+      <input type="text" name='description' />
+      <input type="submit" value="Create" />
+    </form>
+    <ul id="todos">
+      {% for d in data %}
+      <li><input class="checkbox-completed" type="checkbox" {% if d.completed %} checked {% endif %}>{{ d.description }}</li>
+      {% endfor %}
+    </ul>
+    <script>
+      const checkboxes = document.querySelectorAll('.check-completed');
+      for (let i = 0; i< checkboxes.length; i++){
+        checkbox.onchange = function(e){
+          console.log('event', e);
+        }
+      }
+
+    </script>
+  </body>
+</html>
